@@ -11,19 +11,28 @@ import { BsDatabaseFillAdd } from "react-icons/bs";
 import Spinner from "@/components/spinner/spinner";
 import { IoCopy } from "react-icons/io5";
 import copy from "copy-to-clipboard";
+import { DatabaseType } from "@/types/db.types";
 
 export default function Home() {
-  const { saveRequest, removeRequest, updateRequest, requests } =
-    useRequestStore();
+  const {
+    saveRequest,
+    removeRequest,
+    updateRequest,
+    saveDatabase,
+    removeDatabase,
+    updateDatabase,
+    databases,
+    requests,
+  } = useRequestStore();
   const [id, setId] = useState("");
   const [url, setUrl] = useState("");
-  const [method, setMethod] = useState<RequestMethod>("GET");
+  const [method, setMethod] = useState("GET");
   const [data, setData] = useState({});
   const [status, setStatus] = useState(0);
   const [statusCode, setStatusCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const getData = async (url: string, method: RequestMethod) => {
+  const getData = async (url: string, method: string) => {
     try {
       setIsLoading(true);
       const res = await fetch(url, { method });
@@ -38,12 +47,14 @@ export default function Home() {
     }
   };
 
+  console.log(id);
+
   return (
     <Hydrate>
       <div className="h-screen w-screen">
         <div className="pt-4 inset-x-0 flex h-14 border-b px-6 items-end gap-x-1 bg-slate-200">
           <ScrollContainer className="w-full flex gap-1">
-            {requests.map((request) => (
+            {[...requests, ...databases].map((request) => (
               <div
                 key={request.id}
                 onClick={() => {
@@ -61,17 +72,23 @@ export default function Home() {
               >
                 <p
                   className={clsx("text-sm", {
-                    "text-emerald-500": request.method === "GET",
+                    "text-emerald-500": request?.method === "GET",
                     "text-blue-500": request.method === "POST",
                     "text-amber-500": request.method === "PUT",
                     "text-rose-500": request.method === "DELETE",
+                    "text-purple-500": request.method === "PG",
                   })}
                 >
                   {request.method}
                 </p>
                 <p className="w-0 flex-1 truncate text-sm">{request.name}</p>
                 <HiX
-                  onClick={() => removeRequest(request.id)}
+                  onClick={() => {
+                    request.method === "PG"
+                      ? removeDatabase(request.id)
+                      : removeRequest(request.id);
+                    setId("");
+                  }}
                   className="text-base cursor-pointer"
                 />
               </div>
@@ -101,18 +118,24 @@ export default function Home() {
                 "text-blue-500": method === "POST",
                 "text-amber-500": method === "PUT",
                 "text-rose-500": method === "DELETE",
+                "text-purple-500": method === "PG",
               })}
             >
               <option value="GET">GET</option>
               <option value="POST">POST</option>
               <option value="PUT">PUT</option>
               <option value="DELETE">DELETE</option>
+              <option value="PG">PG</option>
             </select>
             <div className="relative w-full h-full flex items-center justify-end flex-1">
               <input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="Url"
+                placeholder={
+                  method === "PG"
+                    ? "postgresql://username:password@host:port/dbname"
+                    : "https://api.test.com"
+                }
                 type="text"
                 className="w-full h-full flex outline-none text-transparent caret-black"
               />
@@ -125,24 +148,46 @@ export default function Home() {
             <div className="flex items-center justify-center gap-x-3">
               <IoMdSave
                 onClick={() => {
-                  if (
-                    url.match(
-                      /^(http(s):\/\/.)[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/g
-                    )
-                  ) {
-                    if (id) {
-                      updateRequest(id, { id, url, method, name: url });
-                    } else {
-                      const id = uuidv4();
-                      saveRequest({
-                        id,
-                        name: url,
-                        method,
-                        url,
-                      });
-                      setId(id);
-                    }
+                  // if (
+                  //   method !== "PG"
+                  //     ? url.match(
+                  //         /^(http(s):\/\/.)[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/g
+                  //       )
+                  //     : url.match(/postgresql:(?:\/\/[^/]+\/)?(\w+)/g)
+                  // ) {
+                  if (id) {
+                    method === "PG"
+                      ? updateDatabase(id, {
+                          id,
+                          url,
+                          method: method as DatabaseType,
+                          name: url,
+                        })
+                      : updateRequest(id, {
+                          id,
+                          url,
+                          method: method as RequestMethod,
+                          name: url,
+                        });
+                  } else {
+                    const id = uuidv4();
+                    console.log(id);
+                    method === "PG"
+                      ? saveDatabase({
+                          id,
+                          name: url,
+                          method: method as DatabaseType,
+                          url,
+                        })
+                      : saveRequest({
+                          id,
+                          name: url,
+                          method: method as RequestMethod,
+                          url,
+                        });
+                    setId(id);
                   }
+                  // }
                 }}
                 className="text-2xl text-gray-400 hover:text-emerald-500 cursor-pointer transition-all duration-200 ease-in-out"
               />
@@ -150,7 +195,7 @@ export default function Home() {
                 onClick={() => getData(url, method)}
                 className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-1 rounded-md transition-all duration-200 ease-in-out"
               >
-                Send
+                {method === "PG" ? "Connect" : "Send"}
               </button>
             </div>
           </div>
