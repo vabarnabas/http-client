@@ -67,7 +67,7 @@ export default function Home() {
                 }}
                 className={clsx(
                   "cursor-pointer sm:max-w-[14rem] w-full max-w-sm hover:bg-emerald-50 flex gap-x-4 py-2.5 border-t border-l border-r rounded-t-lg px-4 items-center flex-1 transition-all duration-200 ease-in-out",
-                  id === request.id ? "pb-3.5 bg-white" : "bg-slate-50"
+                  id === request.id ? " bg-white" : "bg-slate-50"
                 )}
               >
                 <p
@@ -102,7 +102,7 @@ export default function Home() {
             }}
             className={clsx(
               "cursor-pointer flex gap-x-4 py-2.5 border-t border-l border-r rounded-t-lg px-4 items-center hover:bg-emerald-50 transition-all duration-200 ease-in-out text-lg",
-              id === "" ? "pb-3.5 bg-white" : "bg-slate-50"
+              id === "" ? "bg-white" : "bg-slate-50"
             )}
           >
             <HiPlus />
