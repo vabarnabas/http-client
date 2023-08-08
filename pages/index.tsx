@@ -9,6 +9,8 @@ import { RequestMethod } from "@/types/request.types";
 import ScrollContainer from "react-indiana-drag-scroll";
 import { BsDatabaseFillAdd } from "react-icons/bs";
 import Spinner from "@/components/spinner/spinner";
+import { IoCopy } from "react-icons/io5";
+import copy from "copy-to-clipboard";
 
 export default function Home() {
   const { saveRequest, removeRequest, updateRequest, requests } =
@@ -38,38 +40,43 @@ export default function Home() {
 
   return (
     <Hydrate>
-      <div>
-        <ScrollContainer className="pt-4 inset-x-0 flex h-14 border-b px-6 items-end gap-x-1 bg-slate-2 00">
-          {requests.map((request) => (
-            <div
-              key={request.id}
-              onClick={() => {
-                setUrl(request.url);
-                setMethod(request.method);
-                setId(request.id);
-              }}
-              className={clsx(
-                "cursor-pointer sm:max-w-[14rem] w-full max-w-sm hover:bg-emerald-50 flex gap-x-4 py-2.5 border-t border-l border-r rounded-t-lg px-4 items-center flex-1 transition-all duration-200 ease-in-out",
-                id === request.id ? "pb-3.5 bg-white" : "bg-slate-50"
-              )}
-            >
-              <p
-                className={clsx("text-sm", {
-                  "text-emerald-500": request.method === "GET",
-                  "text-blue-500": request.method === "POST",
-                  "text-amber-500": request.method === "PUT",
-                  "text-rose-500": request.method === "DELETE",
-                })}
+      <div className="h-screen w-screen">
+        <div className="pt-4 inset-x-0 flex h-14 border-b px-6 items-end gap-x-1 bg-slate-200">
+          <ScrollContainer className="w-full flex gap-1">
+            {requests.map((request) => (
+              <div
+                key={request.id}
+                onClick={() => {
+                  setUrl(request.url);
+                  setMethod(request.method);
+                  setId(request.id);
+                  setData({});
+                  setStatus(0);
+                  setStatusCode("");
+                }}
+                className={clsx(
+                  "cursor-pointer sm:max-w-[14rem] w-full max-w-sm hover:bg-emerald-50 flex gap-x-4 py-2.5 border-t border-l border-r rounded-t-lg px-4 items-center flex-1 transition-all duration-200 ease-in-out",
+                  id === request.id ? "pb-3.5 bg-white" : "bg-slate-50"
+                )}
               >
-                {request.method}
-              </p>
-              <p className="w-0 flex-1 truncate text-sm">{request.name}</p>
-              <HiX
-                onClick={() => removeRequest(request.id)}
-                className="text-base cursor-pointer"
-              />
-            </div>
-          ))}
+                <p
+                  className={clsx("text-sm", {
+                    "text-emerald-500": request.method === "GET",
+                    "text-blue-500": request.method === "POST",
+                    "text-amber-500": request.method === "PUT",
+                    "text-rose-500": request.method === "DELETE",
+                  })}
+                >
+                  {request.method}
+                </p>
+                <p className="w-0 flex-1 truncate text-sm">{request.name}</p>
+                <HiX
+                  onClick={() => removeRequest(request.id)}
+                  className="text-base cursor-pointer"
+                />
+              </div>
+            ))}
+          </ScrollContainer>
           <div
             onClick={() => {
               setId("");
@@ -83,7 +90,7 @@ export default function Home() {
           >
             <HiPlus />
           </div>
-        </ScrollContainer>
+        </div>
         <div className="mt-2 inset-x-0 h-14 flex justify-center items-center px-6">
           <div className="border w-full rounded-lg flex px-4 h-12 gap-x-4 items-center justify-center">
             <select
@@ -126,21 +133,22 @@ export default function Home() {
                     if (id) {
                       updateRequest(id, { id, url, method, name: url });
                     } else {
+                      const id = uuidv4();
                       saveRequest({
-                        id: uuidv4(),
+                        id,
                         name: url,
                         method,
                         url,
                       });
-                      setUrl("");
+                      setId(id);
                     }
                   }
                 }}
-                className="text-2xl text-gray-400 hover:text-emerald-500 cursor-pointer"
+                className="text-2xl text-gray-400 hover:text-emerald-500 cursor-pointer transition-all duration-200 ease-in-out"
               />
               <button
                 onClick={() => getData(url, method)}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-1 rounded-md"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-1 rounded-md transition-all duration-200 ease-in-out"
               >
                 Send
               </button>
@@ -161,18 +169,28 @@ export default function Home() {
           >
             {`${status || ""} ${statusCode.toUpperCase()}`}
           </div>
-          <div className="border rounded-lg p-4 mt-2">
+          <div className="relative border rounded-lg p-4 mt-2 overflow-y-auto h-full">
+            {Object.keys(data).length ? (
+              <div
+                onClick={() => copy(JSON.stringify(data, null, 2))}
+                className="absolute right-4 top-4 text-slate-300 hover:text-emerald-500 cursor-pointer transition-all duration-200 ease-in-out text-xl"
+              >
+                <IoCopy />
+              </div>
+            ) : null}
             {isLoading ? (
               <Spinner />
             ) : !Object.keys(data).length ? (
               <div className="h-64 flex flex-col gap-y-8 justify-center items-center">
-                <BsDatabaseFillAdd className="h-44 w-44 text-slate-300" />
-                <p className="text-xl text-slate-300 font-light">
+                <BsDatabaseFillAdd className="h-44 w-44 text-emerald-400" />
+                <p className="text-xl text-emerald-400 font-light">
                   Make a request to receive data
                 </p>
               </div>
             ) : (
-              <pre>{JSON.stringify(data, null, 2)}</pre>
+              <pre className="overflow-y-auto">
+                {JSON.stringify(data, null, 2)}
+              </pre>
             )}
           </div>
         </div>
