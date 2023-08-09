@@ -1,9 +1,9 @@
-import clsx from "clsx";
-import React from "react";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import clsx from "clsx"
+import React from "react"
+import { AiOutlineLoading3Quarters } from "react-icons/ai"
 
 interface Props {
-  className?: string;
+  className?: string
 }
 
 export default function Spinner({ className }: Props) {
@@ -13,5 +13,5 @@ export default function Spinner({ className }: Props) {
         className={clsx("animate-spin text-3xl text-slate-300", className)}
       />
     </div>
-  );
+  )
 }

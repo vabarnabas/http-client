@@ -1,35 +1,99 @@
-import React from "react";
+import React from "react"
 
 interface Props {
-  text: string;
+  text: string
+  isDb?: boolean
 }
 
-const UrlHighLight = ({ text }: Props) => {
-  const httpRegex = /http(s)?:\/\//g;
-  const startingQueryRegex = /\?[a-zA-Z0-9_]+=[a-zA-Z0-9_]+/g;
-  const continuingQueryRegex = /(?:&[a-zA-Z0-9_]+=[a-zA-Z0-9_]+)/g;
+const UrlHighLight = ({ text, isDb }: Props) => {
+  function processTextWithStyles() {
+    const urlPatterns = [
+      { regex: /http(s)?:\/\//g, className: "text-blue-500" },
+      {
+        regex: /(?:http[s]*\:\/\/)*(.*?)\.(?=[^\/]*\..{2,5})/g,
+        className: "text-slate-500",
+      },
+      {
+        regex: /(?:http[s]*\:\/\/.*?)@/g,
+        className: "text-slate-500",
+      },
+      {
+        regex: /\?[a-zA-Z0-9_]+=[a-zA-Z0-9_]+/g,
+        className: "text-emerald-500",
+      },
+      {
+        regex: /(?:&[a-zA-Z0-9_]+=[a-zA-Z0-9_]+)/g,
+        className: "text-emerald-500",
+      },
+      {
+        regex: /:([^/]+)/g,
+        className: "text-amber-500",
+      },
+      {
+        regex: /{{([^/]+)}}/g,
+        className: "text-purple-500",
+      },
+      {
+        regex: /:\/\//g,
+        className: "text-slate-800",
+      },
+    ]
 
-  const patterns = [httpRegex, startingQueryRegex, continuingQueryRegex]
+    const dbPatterns = [
+      {
+        regex: /postgresql:\/\/([^:]+):(\w+)@([^:]+):(\d+)\/(.+)/g,
+        className: "text-blue-500",
+      },
+      {
+        regex: /postgresql:\/\/[^:]+:\w+@([^/]+)/g,
+        className: "text-slate-500",
+      },
+      {
+        regex: /postgresql:\/\/[^:]+:(\w+)/g,
+        className: "text-slate-800",
+      },
+      {
+        regex: /postgresql:\/\/([^:]+)/g,
+        className: "text-slate-800",
+      },
+      {
+        regex: /postgresql:\/\//g,
+        className: "text-purple-500",
+      },
+      {
+        regex: /:\d{1,5}/g,
+        className: "text-slate-500",
+      },
+      {
+        regex: /:/g,
+        className: "text-slate-800",
+      },
+      {
+        regex: /@/g,
+        className: "text-slate-800",
+      },
+    ]
 
-  const processText = (inputText: string) => {
-    
-  };
+    let processedText = text
 
-  const processedText = processText(text);
+    isDb
+      ? dbPatterns.forEach(({ regex, className }) => {
+          processedText = processedText.replace(
+            regex,
+            `<span class="${className}">$&</span>`
+          )
+        })
+      : urlPatterns.forEach(({ regex, className }) => {
+          processedText = processedText.replace(
+            regex,
+            `<span class="${className}">$&</span>`
+          )
+        })
 
-  return (
-    <div>
-      {processedText.map((part, index) =>
-        typeof part === 'string' ? (
-          <span key={index}>{part}</span>
-        ) : (
-          <span key={index} className="http-link">
-            {React.cloneElement(part, { key: index })}
-          </span>
-        )
-      )}
-    </div>
-  );
-};
+    return processedText
+  }
+  const processedText = processTextWithStyles()
+  return <div dangerouslySetInnerHTML={{ __html: processedText }} />
+}
 
-export default UrlHighLight;
+export default UrlHighLight

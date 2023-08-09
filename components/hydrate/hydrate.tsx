@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
 
 interface Props {
-  children: JSX.Element;
+  children: JSX.Element
 }
 
 const Hydrate = ({ children }: Props) => {
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false)
 
   // Wait till Next.js rehydration completes
   useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+    setIsHydrated(true)
+  }, [])
 
-  return <>{isHydrated ? <div>{children}</div> : null}</>;
-};
+  return <>{isHydrated ? <div>{children}</div> : null}</>
+}
 
-export default Hydrate;
+export default Hydrate

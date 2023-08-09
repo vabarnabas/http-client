@@ -1,17 +1,19 @@
-import Hydrate from "@/components/hydrate/hydrate";
-import { useRequestStore } from "@/stores/url.store";
-import React, { useState } from "react";
-import { IoMdSave } from "react-icons/io";
-import { v4 as uuidv4 } from "uuid";
-import { HiPlus, HiX } from "react-icons/hi";
-import clsx from "clsx";
-import { RequestMethod } from "@/types/request.types";
-import ScrollContainer from "react-indiana-drag-scroll";
-import { BsDatabaseFillAdd } from "react-icons/bs";
-import Spinner from "@/components/spinner/spinner";
-import { IoCopy } from "react-icons/io5";
-import copy from "copy-to-clipboard";
-import { DatabaseType } from "@/types/db.types";
+import clsx from "clsx"
+import copy from "copy-to-clipboard"
+import React, { useState } from "react"
+import { BsDatabaseFillAdd } from "react-icons/bs"
+import { HiPlus, HiX } from "react-icons/hi"
+import { IoMdSave } from "react-icons/io"
+import { IoCopy } from "react-icons/io5"
+import ScrollContainer from "react-indiana-drag-scroll"
+import { v4 as uuidv4 } from "uuid"
+
+import Hydrate from "@/components/hydrate/hydrate"
+import Spinner from "@/components/spinner/spinner"
+import { useRequestStore } from "@/stores/url.store"
+import { DatabaseType } from "@/types/db.types"
+import { RequestMethod } from "@/types/request.types"
+import UrlHighLight from "@/components/url-highlight/url-highlight"
 
 export default function Home() {
   const {
@@ -23,50 +25,50 @@ export default function Home() {
     updateDatabase,
     databases,
     requests,
-  } = useRequestStore();
-  const [id, setId] = useState("");
-  const [url, setUrl] = useState("");
-  const [method, setMethod] = useState("GET");
-  const [data, setData] = useState({});
-  const [status, setStatus] = useState(0);
-  const [statusCode, setStatusCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  } = useRequestStore()
+  const [id, setId] = useState("")
+  const [url, setUrl] = useState("")
+  const [method, setMethod] = useState("GET")
+  const [data, setData] = useState({})
+  const [status, setStatus] = useState(0)
+  const [statusCode, setStatusCode] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   const getData = async (url: string, method: string) => {
     try {
-      setIsLoading(true);
-      const res = await fetch(url, { method });
-      const json = await res.json();
-      setStatus(res.status);
-      setStatusCode(res.statusText);
-      setData(json);
+      setIsLoading(true)
+      const res = await fetch(url, { method })
+      const json = await res.json()
+      setStatus(res.status)
+      setStatusCode(res.statusText)
+      setData(json)
     } catch {
-      console.log("error");
+      console.log("error")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
-  console.log(id);
+  console.log(id)
 
   return (
     <Hydrate>
-      <div className="h-screen w-screen">
-        <div className="pt-4 inset-x-0 flex h-14 border-b px-6 items-end gap-x-1 bg-slate-200">
+      <div className="h-screen w-screen text-slate-800">
+        <div className="pt-4 inset-x-0 flex h-16 border-b px-6 items-center gap-x-1 bg-slate-200">
           <ScrollContainer className="w-full flex gap-1">
             {[...requests, ...databases].map((request) => (
               <div
                 key={request.id}
                 onClick={() => {
-                  setUrl(request.url);
-                  setMethod(request.method);
-                  setId(request.id);
-                  setData({});
-                  setStatus(0);
-                  setStatusCode("");
+                  setUrl(request.url)
+                  setMethod(request.method)
+                  setId(request.id)
+                  setData({})
+                  setStatus(0)
+                  setStatusCode("")
                 }}
                 className={clsx(
-                  "cursor-pointer sm:max-w-[14rem] w-full max-w-sm hover:bg-emerald-50 flex gap-x-4 py-2.5 border-t border-l border-r rounded-t-lg px-4 items-center flex-1 transition-all duration-200 ease-in-out",
+                  "cursor-pointer sm:max-w-[14rem] w-full max-w-sm hover:bg-emerald-50 flex gap-x-4 py-2.5 border rounded-lg px-4 items-center flex-1 transition-all duration-200 ease-in-out",
                   id === request.id ? " bg-white" : "bg-slate-50"
                 )}
               >
@@ -86,8 +88,8 @@ export default function Home() {
                   onClick={() => {
                     request.method === "PG"
                       ? removeDatabase(request.id)
-                      : removeRequest(request.id);
-                    setId("");
+                      : removeRequest(request.id)
+                    setId("")
                   }}
                   className="text-base cursor-pointer"
                 />
@@ -96,12 +98,12 @@ export default function Home() {
           </ScrollContainer>
           <div
             onClick={() => {
-              setId("");
-              setMethod("GET");
-              setUrl("https://");
+              setId("")
+              setMethod("GET")
+              setUrl("https://")
             }}
             className={clsx(
-              "cursor-pointer flex gap-x-4 py-2.5 border-t border-l border-r rounded-t-lg px-4 items-center hover:bg-emerald-50 transition-all duration-200 ease-in-out text-lg",
+              "cursor-pointer flex gap-x-4 py-2.5 border rounded-lg px-4 items-center hover:bg-emerald-50 transition-all duration-200 ease-in-out text-lg",
               id === "" ? "bg-white" : "bg-slate-50"
             )}
           >
@@ -141,8 +143,8 @@ export default function Home() {
               />
 
               <div className="left-0 absolute pointer-events-none right-0 flex-1 truncate">
-                {/* <UrlHighLight text={url} /> */}
-                {url}
+                <UrlHighLight text={url} isDb={method === "PG"} />
+                {/* {url} */}
               </div>
             </div>
             <div className="flex items-center justify-center gap-x-3">
@@ -168,10 +170,10 @@ export default function Home() {
                           url,
                           method: method as RequestMethod,
                           name: url,
-                        });
+                        })
                   } else {
-                    const id = uuidv4();
-                    console.log(id);
+                    const id = uuidv4()
+                    console.log(id)
                     method === "PG"
                       ? saveDatabase({
                           id,
@@ -184,8 +186,8 @@ export default function Home() {
                           name: url,
                           method: method as RequestMethod,
                           url,
-                        });
-                    setId(id);
+                        })
+                    setId(id)
                   }
                   // }
                 }}
@@ -241,5 +243,5 @@ export default function Home() {
         </div>
       </div>
     </Hydrate>
-  );
+  )
 }
