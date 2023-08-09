@@ -6,10 +6,15 @@ export default async function getPgTables(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { connectionString } = req.body
+  const { connectionString, sqlQuery } =
+    typeof req.body === "string" ? JSON.parse(req.body) : req.body
 
-  if (req.method !== "POST" || !connectionString) {
+  if (req.method !== "POST") {
     return res.status(405).end()
+  }
+
+  if (!connectionString) {
+    return res.status(400).end()
   }
 
   const pool = new Pool({ connectionString })
@@ -17,12 +22,12 @@ export default async function getPgTables(
   try {
     const client = await pool.connect()
     const result = await client.query(
-      "SELECT table_name FROM information_schema.tables WHERE table_schema = $1",
-      ["public"]
+      sqlQuery ??
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
     )
-    const tables = result.rows.map((row) => row.table_name)
+    const tables = result.rows.map((row: any) => row.table_name)
     client.release()
-    res.status(200).json(tables)
+    res.status(200).json(sqlQuery ? result.rows : tables)
   } catch (error) {
     console.error("Error fetching tables:", error)
     res.status(500).json({ error: "Internal server error" })

@@ -10,11 +10,11 @@ const UrlHighLight = ({ text, isDb }: Props) => {
     const urlPatterns = [
       { regex: /http(s)?:\/\//g, className: "text-blue-500" },
       {
-        regex: /(?:http[s]*\:\/\/)*(.*?)\.(?=[^\/]*\..{2,5})/g,
+        regex: /(?:http[s]*:\/\/)*(.*?)\.(?=[^/]*\..{2,5})/g,
         className: "text-slate-500",
       },
       {
-        regex: /(?:http[s]*\:\/\/.*?)@/g,
+        regex: /(?:http[s]*:\/\/.*?)@/g,
         className: "text-slate-500",
       },
       {
@@ -41,36 +41,8 @@ const UrlHighLight = ({ text, isDb }: Props) => {
 
     const dbPatterns = [
       {
-        regex: /postgresql:\/\/([^:]+):(\w+)@([^:]+):(\d+)\/(.+)/g,
-        className: "text-blue-500",
-      },
-      {
-        regex: /postgresql:\/\/[^:]+:\w+@([^/]+)/g,
-        className: "text-slate-500",
-      },
-      {
-        regex: /postgresql:\/\/[^:]+:(\w+)/g,
-        className: "text-slate-800",
-      },
-      {
-        regex: /postgresql:\/\/([^:]+)/g,
-        className: "text-slate-800",
-      },
-      {
-        regex: /postgresql:\/\//g,
+        regex: /postgresql/g,
         className: "text-purple-500",
-      },
-      {
-        regex: /:\d{1,5}/g,
-        className: "text-slate-500",
-      },
-      {
-        regex: /:/g,
-        className: "text-slate-800",
-      },
-      {
-        regex: /@/g,
-        className: "text-slate-800",
       },
     ]
 

@@ -1,8 +1,9 @@
-export type DatabaseType = "PG";
+export type DatabaseType = "PG"
 
 export interface Database {
-  id: string;
-  name: string;
-  method: DatabaseType;
-  url: string;
+  id: string
+  name: string
+  method: DatabaseType
+  url: string
+  lastQuery?: string
 }
