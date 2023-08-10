@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function Tab({ element, id, setId }: Props) {
-  const { removeEntity } = usePersistingStore()
+  const { removeEntity, entities, saveEntity } = usePersistingStore()
 
   return (
     <div
@@ -34,7 +34,17 @@ export default function Tab({ element, id, setId }: Props) {
         onClick={(e: SyntheticEvent) => {
           e.stopPropagation()
           removeEntity(element.id)
-          setId("")
+          if (!entities.length) {
+            saveEntity({
+              id,
+              method: "PG",
+              name: "Untitled Database",
+              url: "",
+            })
+          } else {
+            console.log(element.id, entities[entities.length - 1].id)
+            setId(entities[entities.length - 1].id)
+          }
         }}
         className="text-base cursor-pointer hover:text-slate-600 text-slate-800"
       />

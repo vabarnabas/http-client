@@ -4,7 +4,7 @@ import { editor, Position } from "monaco-editor"
 import React, { useEffect, useState } from "react"
 import { BsFillDatabaseFill, BsPlayFill } from "react-icons/bs"
 import { IoMdBrowsers, IoMdSave } from "react-icons/io"
-import { PiBracketsCurlyBold, PiTerminalWindowBold } from "react-icons/pi"
+import { PiBracketsCurlyBold } from "react-icons/pi"
 import ScrollContainer from "react-indiana-drag-scroll"
 import { v4 as uuidv4 } from "uuid"
 
@@ -46,6 +46,19 @@ export default function New() {
     }
     return true
   }
+
+  useEffect(() => {
+    if (!entities.length) {
+      saveEntity({
+        id,
+        method: "PG",
+        name: "Untitled Database",
+        url: "",
+      })
+    } else {
+      setId(entities[0].id)
+    }
+  }, [])
 
   useEffect(() => {
     const item = getItemById(id)
@@ -212,8 +225,12 @@ export default function New() {
           </ScrollContainer>
           <div
             onClick={() => {
-              if (showVariableEditor && isJsonString(localVariables)) {
-                setVariables(localVariables)
+              if (showVariableEditor) {
+                if (isJsonString(localVariables)) {
+                  setVariables(localVariables)
+                } else {
+                  setLocalVariables(variables)
+                }
               }
 
               setShowVariableEditor(!showVariableEditor)
@@ -226,165 +243,155 @@ export default function New() {
             <PiBracketsCurlyBold className="text-slate-500" />
           </div>
         </div>
-        {id !== "" ? (
-          <>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault()
-                if (method === "PG") {
-                  await connectToDatabase()
-                } else {
-                  await runApi()
-                }
-              }}
-              className="mt-2 inset-x-0 flex justify-center items-center px-6 py-1"
+
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault()
+            if (method === "PG") {
+              await connectToDatabase()
+            } else {
+              await runApi()
+            }
+          }}
+          className="mt-2 inset-x-0 flex justify-center items-center px-6 py-1"
+        >
+          <div className="border w-full rounded-lg flex px-4 h-12 gap-x-4 items-center justify-center">
+            <select
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
+              className={clsx(
+                "bg-white",
+                getMethodColor({ method } as Database | Request)
+              )}
             >
-              <div className="border w-full rounded-lg flex px-4 h-12 gap-x-4 items-center justify-center">
-                <select
-                  value={method}
-                  onChange={(e) => setMethod(e.target.value)}
-                  className={clsx(
-                    "bg-white",
-                    getMethodColor({ method } as Database | Request)
-                  )}
-                >
-                  <option value="GET">GET</option>
-                  <option value="POST">POST</option>
-                  <option value="PUT">PUT</option>
-                  <option value="DELETE">DELETE</option>
-                  <option value="PG">PG</option>
-                </select>
-                <div className="relative w-full h-full flex items-center justify-end flex-1">
-                  <input
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder={
-                      method === "PG"
-                        ? "postgresql://username:password@host:port/dbname"
-                        : "https://api.test.com"
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="DELETE">DELETE</option>
+              <option value="PG">PG</option>
+            </select>
+            <div className="relative w-full h-full flex items-center justify-end flex-1">
+              <input
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder={
+                  method === "PG"
+                    ? "postgresql://username:password@host:port/dbname"
+                    : "https://api.test.com"
+                }
+                type="text"
+                className="w-full h-full flex outline-none text-transparent caret-black"
+              />
+
+              <div className="left-0 absolute pointer-events-none right-0 flex-1 truncate">
+                <UrlHighLight text={url} isDb={method === "PG"} />
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-x-3">
+              <IoMdSave
+                onClick={() => {
+                  if (id) {
+                    const options: EntityOptions = {}
+
+                    if (authorization === "bearer") {
+                      options.headers = options.headers
+                        ? {
+                            ...options.headers,
+                            authorization: "Bearer " + authorizationKey,
+                          }
+                        : { authorization: "Bearer " + authorizationKey }
                     }
-                    type="text"
-                    className="w-full h-full flex outline-none text-transparent caret-black"
-                  />
 
-                  <div className="left-0 absolute pointer-events-none right-0 flex-1 truncate">
-                    <UrlHighLight text={url} isDb={method === "PG"} />
-                  </div>
-                </div>
-                <div className="flex items-center justify-center gap-x-3">
-                  <IoMdSave
-                    onClick={() => {
-                      if (id) {
-                        const options: EntityOptions = {}
-
-                        if (authorization === "bearer") {
-                          options.headers = options.headers
-                            ? {
-                                ...options.headers,
-                                authorization: "Bearer " + authorizationKey,
-                              }
-                            : { authorization: "Bearer " + authorizationKey }
-                        }
-
-                        updateEntity(id, {
-                          id: id,
-                          url,
-                          method: method as Method,
-                          name: url,
-                          options,
-                        })
-                      } else {
-                        const id = uuidv4()
-                        saveEntity({
-                          id,
-                          name: url,
-                          method: method as Method,
-                          url,
-                        })
-
-                        setId(id)
-                      }
-                    }}
-                    className="text-2xl text-gray-400 hover:text-emerald-500 cursor-pointer transition-all duration-200 ease-in-out"
-                  />
-                  <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-1 rounded-md transition-all duration-200 ease-in-out">
-                    {method === "PG" ? "Connect" : "Send"}
-                  </button>
-                </div>
-              </div>
-            </form>
-            {method === "PG" ? (
-              <div className="relative h-56 rounded-lg overflow-clip mx-6 mt-2 border">
-                <button
-                  onClick={async () => {
-                    await runQuery()
                     updateEntity(id, {
-                      ...(getItemById(id) as Entity),
-                      options: { lastQuery: sqlCode },
+                      id: id,
+                      url,
+                      method: method as Method,
+                      name: url,
+                      options,
                     })
-                  }}
-                  className="absolute right-6 bottom-3 flex justify-center items-center gap-x-1 bg-purple-500 z-10 hover:bg-purple-600 text-white px-4 py-1 rounded-md transition-all duration-200 ease-in-out"
-                >
-                  <BsPlayFill /> Run
-                </button>
-                <Editor
-                  className="rounded-lg rounded-b-lg"
-                  defaultLanguage="sql"
-                  value={sqlCode}
-                  onChange={(e) => setSqlCode(e || "")}
-                  options={{ minimap: { enabled: false } }}
-                  beforeMount={handleEditorDidMount}
-                />
-              </div>
-            ) : (
-              <div className="relative rounded-lg overflow-clip mx-6 mt-2 border p-4">
-                <div className="flex flex-col gap-x-3 items-center">
-                  <div className="flex justify-between items-center w-full">
-                    <p className="font-semibold">Authorization:</p>
-                    <select
-                      value={authorization}
-                      onChange={(e) => setAuthorization(e.target.value)}
-                      className="bg-white"
-                    >
-                      <option value="none">None</option>
-                      <option value="bearer">Bearer</option>
-                      <option value="api-key">API Key</option>
-                    </select>
-                  </div>
-                  {authorization !== "none" ? (
-                    <input
-                      type="text"
-                      placeholder={
-                        authorization === "bearer" ? "Bearer Token" : "API Key"
-                      }
-                      value={authorizationKey}
-                      onChange={(e) => setAuthorizationKey(e.target.value)}
-                      className="w-full h-full flex outline-none border rounded-lg px-3 py-1.5 text-sm mt-3"
-                    />
-                  ) : null}
-                </div>
-              </div>
-            )}
-            {Object.keys(data).length ? (
-              <div className="relative rounded-lg overflow-clip mx-6 border mt-3 max-h-96 overflow-y-auto overflow-x-auto">
-                {method === "PG" ? (
-                  <ObjectTable data={data as Record<string, string>[]} />
-                ) : (
-                  <pre className="text-sm p-4 select-text">
-                    {JSON.stringify(data, null, 2)}
-                  </pre>
-                )}
-              </div>
-            ) : null}
-          </>
+                  } else {
+                    const id = uuidv4()
+                    saveEntity({
+                      id,
+                      name: url,
+                      method: method as Method,
+                      url,
+                    })
+
+                    setId(id)
+                  }
+                }}
+                className="text-2xl text-gray-400 hover:text-emerald-500 cursor-pointer transition-all duration-200 ease-in-out"
+              />
+              <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-1 rounded-md transition-all duration-200 ease-in-out">
+                {method === "PG" ? "Connect" : "Send"}
+              </button>
+            </div>
+          </div>
+        </form>
+        {method === "PG" ? (
+          <div className="relative h-56 rounded-lg overflow-clip mx-6 mt-2 border">
+            <button
+              onClick={async () => {
+                await runQuery()
+                updateEntity(id, {
+                  ...(getItemById(id) as Entity),
+                  options: { lastQuery: sqlCode },
+                })
+              }}
+              className="absolute right-6 bottom-3 flex justify-center items-center gap-x-1 bg-purple-500 z-10 hover:bg-purple-600 text-white px-4 py-1 rounded-md transition-all duration-200 ease-in-out"
+            >
+              <BsPlayFill /> Run
+            </button>
+            <Editor
+              className="rounded-lg rounded-b-lg"
+              defaultLanguage="sql"
+              value={sqlCode}
+              onChange={(e) => setSqlCode(e || "")}
+              options={{ minimap: { enabled: false } }}
+              beforeMount={handleEditorDidMount}
+            />
+          </div>
         ) : (
-          <div className="flex-1 flex flex-col justify-center items-center">
-            <PiTerminalWindowBold className="text-emerald-500 h-44 w-44" />
-            <p className="text-lg text-slate-500 font-medium -mt-2 w-44 text-center">
-              Select a Request or a Database
-            </p>
+          <div className="relative rounded-lg overflow-clip mx-6 mt-2 border p-4">
+            <div className="flex flex-col gap-x-3 items-center">
+              <div className="flex justify-between items-center w-full">
+                <p className="font-semibold">Authorization:</p>
+                <select
+                  value={authorization}
+                  onChange={(e) => setAuthorization(e.target.value)}
+                  className="bg-white"
+                >
+                  <option value="none">None</option>
+                  <option value="bearer">Bearer</option>
+                  <option value="api-key">API Key</option>
+                </select>
+              </div>
+              {authorization !== "none" ? (
+                <input
+                  type="text"
+                  placeholder={
+                    authorization === "bearer" ? "Bearer Token" : "API Key"
+                  }
+                  value={authorizationKey}
+                  onChange={(e) => setAuthorizationKey(e.target.value)}
+                  className="w-full h-full flex outline-none border rounded-lg px-3 py-1.5 text-sm mt-3"
+                />
+              ) : null}
+            </div>
           </div>
         )}
+        {Object.keys(data).length ? (
+          <div className="relative rounded-lg overflow-clip mx-6 border mt-3 max-h-96 overflow-y-auto overflow-x-auto">
+            {method === "PG" ? (
+              <ObjectTable data={data as Record<string, string>[]} />
+            ) : (
+              <pre className="text-sm p-4 select-text">
+                {JSON.stringify(data, null, 2)}
+              </pre>
+            )}
+          </div>
+        ) : null}
       </div>
     </Hydrate>
   )
