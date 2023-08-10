@@ -1,6 +1,7 @@
 import clsx from "clsx"
 import React, { SyntheticEvent } from "react"
 import { HiX } from "react-icons/hi"
+import { v4 as uuidv4 } from "uuid"
 
 import { getMethodColor } from "@/helpers/getColors"
 import { usePersistingStore } from "@/stores/global.store"
@@ -14,7 +15,7 @@ interface Props {
 }
 
 export default function Tab({ element, id, setId }: Props) {
-  const { removeEntity, entities, saveEntity } = usePersistingStore()
+  const { removeEntity, saveEntity, getEntities } = usePersistingStore()
 
   return (
     <div
@@ -34,16 +35,17 @@ export default function Tab({ element, id, setId }: Props) {
         onClick={(e: SyntheticEvent) => {
           e.stopPropagation()
           removeEntity(element.id)
-          if (!entities.length) {
+          if (!getEntities().length) {
+            const id = uuidv4()
             saveEntity({
               id,
               method: "PG",
               name: "Untitled Database",
               url: "",
             })
+            setId(id)
           } else {
-            console.log(element.id, entities[entities.length - 1].id)
-            setId(entities[entities.length - 1].id)
+            setId(getEntities()[getEntities().length - 1].id)
           }
         }}
         className="text-base cursor-pointer hover:text-slate-600 text-slate-800"

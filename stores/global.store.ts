@@ -5,6 +5,7 @@ import { Entity } from "@/types/entity.types"
 
 interface PersistingStore {
   entities: Entity[]
+  getEntities: () => Entity[]
   getItemById: (id: string) => Entity
   variables: string
   setVariables: (variables: string) => void
@@ -17,6 +18,7 @@ export const usePersistingStore = create<PersistingStore>()(
   persist(
     (set, get) => ({
       entities: [] as Entity[],
+      getEntities: () => get().entities,
       getItemById: (id) => {
         return get().entities.find((item) => item.id === id) as Entity
       },

@@ -27,6 +27,7 @@ export default function New() {
     getItemById,
     variables,
     setVariables,
+    getEntities,
   } = usePersistingStore()
   const [url, setUrl] = useState("")
   const [method, setMethod] = useState("GET")
@@ -48,15 +49,17 @@ export default function New() {
   }
 
   useEffect(() => {
-    if (!entities.length) {
+    if (!getEntities().length) {
+      const id = uuidv4()
       saveEntity({
         id,
         method: "PG",
         name: "Untitled Database",
         url: "",
       })
+      setId(id)
     } else {
-      setId(entities[0].id)
+      setId(getEntities()[0].id)
     }
   }, [])
 
